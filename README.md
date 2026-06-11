@@ -30,11 +30,16 @@ claude-cxo/
     │   ├── monetization-strategist.md   マネタイズ・LTV/CAC・GTM                    … 部門長
     │   └── critical-reviewer.md         批判的レビュー（悪魔の代弁者・プレモータム）   … 社外取締役
     └── skills/
-        └── new-app-strategy/        ← 司令塔（エントリーコマンド /new-app-strategy）
-            ├── SKILL.md
-            └── templates/
-                ├── business-plan.md     事業計画書テンプレ
-                └── lean-canvas.md       Lean Canvas テンプレ
+        ├── new-app-strategy/        ← 司令塔・subagent版（エントリー /new-app-strategy）【既定】
+        │   ├── SKILL.md
+        │   └── templates/
+        │       ├── business-plan.md     事業計画書テンプレ
+        │       └── lean-canvas.md       Lean Canvas テンプレ
+        └── new-app-boardroom/       ← 司令塔・全員会議版（エントリー /new-app-boardroom）
+            ├── SKILL.md                 Agent Teams で役員同士が直接議論
+            └── templates/               （業計画書／Lean Canvas テンプレ・上と同内容）
+                ├── business-plan.md
+                └── lean-canvas.md
 ```
 
 > **設計思想**: `claude/` は Git 管理する「配布物の正本」、各プロジェクトの `.claude/` は「実行時設定」。
@@ -65,6 +70,42 @@ cp -R claude/skills  /path/to/your-project/.claude/
 
 ---
 
+## 2つのモード（使い分け）
+
+同じ6人の出席者を使って、会議の「進め方」が異なる2つのモードがあります。
+
+| | `/new-app-strategy`（subagent版）【既定】 | `/new-app-boardroom`（全員会議版） |
+|---|---|---|
+| 進め方 | 議長が各役員を**順に呼び出し**、成果物を統合（放射状・逐次） | 6役員が **Agent Teams で同席し、互いに直接議論**（生の会議） |
+| オーナー参加 | 批判レビュー後の質疑フェーズで参加 | 会議中いつでも **Shift+Down で任意の役員へ直接割り込み**可能 |
+| 強み | 安価・堅牢・量産向き | 臨場感・役員同士の論戦・オーナーの直接参加 |
+| コスト | 低い | **高い**（役員ごとに独立インスタンス＝トークン大幅増） |
+| 向く場面 | 数多くのアイデアを素早く回す | 重要案件をじっくり、会議体験ごと検証する |
+
+> 迷ったら **`/new-app-strategy`（既定）** を。会議の臨場感や役員同士の議論を見たい重要案件のときに `/new-app-boardroom` を使ってください。
+
+### 全員会議版（`/new-app-boardroom`）の有効化
+
+全員会議版は Claude Code の **Agent Teams（実験的機能）** を使うため、事前設定が必要です。
+
+- **Claude Code v2.1.32 以降**（`claude --version` で確認）
+- `settings.json` の `env`、または環境変数で有効化：
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+設定後に Claude Code を再起動してください。未設定のまま `/new-app-boardroom` を呼ぶと、`/new-app-strategy` を使うよう案内されます。
+
+> ⚠️ Agent Teams は実験的機能です（セッション復元不可・タスク状態のラグ・1チーム制などの制約あり）。
+> また役員6名ぶんのトークンを消費するため、コストが気になる場合は subagent 版を使ってください。
+
+---
+
 ## 使い方
 
 導入後、Claude Code で司令塔スキルを呼び出します。
@@ -87,6 +128,15 @@ cp -R claude/skills  /path/to/your-project/.claude/
 
 > **再審議もできます**: 後日 `/new-app-strategy cxo-research/<既存フォルダ>` で再招集。新しい疑問・訂正・
 > 検証データを受けて影響するレポートだけ更新し、再決裁の結果を `00-business-plan.md` の改訂履歴に残します。
+
+**全員会議版を使う場合**は、有効化（上記）のうえで同じ要領で呼び出します。生成物・命名規則・再審議のやり方は subagent 版と共通です。
+
+```
+/new-app-boardroom フリーランス向けの請求書管理アプリ
+```
+
+> 6人の役員が同席して互いに議論し、あなたは会議中いつでも Shift+Down で任意の役員へ直接質問できます。
+> 議長は議論には加わらず、議事録の清書と「数字を一次データまで遡る監査」に徹して結論をまとめます。
 
 ---
 
@@ -121,6 +171,20 @@ cxo-research/<アプリ名>-<YYYY-MM-DD>/
 
 > 命名規則：`00-` = 結論／`01→06` = 市場→競合→技術→顧客→マネタイズ→批判 の順に深掘り。
 > **まず `00-business-plan.md` の冒頭だけ読めば結論はつかめます。**
+
+### AI-DLC Inception を始めるとき
+
+経営会議の成果物をそのまま開発フェーズ（AI-DLC）に引き継ぐ場合、渡すファイルは目的で絞ってください。
+
+| 優先度 | ファイル | 理由 |
+|---|---|---|
+| **必須** | `00-business-plan.md` | 何を・誰のために・なぜ作るか。キル基準・PIVOT 条件・スコープの憲法 |
+| **必須** | `03-tech-feasibility.md` | セクション⑤「AI-DLC Inception への引き継ぎ事項」がそのまま Inception の最初のアジェンダ |
+| 任意 | `04-persona.md` | UX 設計や機能仕様の優先度を議論するとき |
+| 任意 | `06-critical-review.md`（⑥キル基準のみ） | スコープが広がりそうなとき、撤退条件に立ち返る用 |
+
+> `01-market.md`・`02-competitors.md`・`05-monetization.md` は事業判断の素材です。
+> AI-DLC は「作るか作らないか」を判断しないため、渡すと混乱のもとになります。
 
 ---
 
