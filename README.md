@@ -34,12 +34,14 @@ claude-cxo/
         │   ├── SKILL.md
         │   └── templates/
         │       ├── business-plan.md     事業計画書テンプレ
-        │       └── lean-canvas.md       Lean Canvas テンプレ
+        │       ├── lean-canvas.md       Lean Canvas テンプレ
+        │       └── input-brief.md       AI-DLC 入力ブリーフ テンプレ（開発引き継ぎ用）
         └── new-app-boardroom/       ← 司令塔・全員会議版（エントリー /new-app-boardroom）
             ├── SKILL.md                 Agent Teams で役員同士が直接議論
-            └── templates/               （業計画書／Lean Canvas テンプレ・上と同内容）
+            └── templates/               （事業計画書／Lean Canvas／入力ブリーフ テンプレ・上と同内容）
                 ├── business-plan.md
-                └── lean-canvas.md
+                ├── lean-canvas.md
+                └── input-brief.md
 ```
 
 > **設計思想**: `claude/` は Git 管理する「配布物の正本」、各プロジェクトの `.claude/` は「実行時設定」。
@@ -124,7 +126,8 @@ cp -R claude/skills  /path/to/your-project/.claude/
 6. **批判レビュー** — 社外取締役（批判役）が致命的懸念・プレモータム・撤退条件を指摘
 7. **オーナー質疑** — あなたが疑問・異議・訂正をぶつける（論点は議長が各専門家に差し戻し）
 8. **最終決裁** — 議長が反論・修正し、事業計画書と Lean Canvas を確定
-9. **報告** — エグゼクティブサマリー、GO/PIVOT/NO-GO 判定、AI-DLC への引き継ぎ事項
+9. **AI-DLC 引き継ぎブリーフ生成** — GO / PIVOT のとき、開発フェーズが受け取れる `input-brief.md` を自動生成（NO-GO はスキップ）
+10. **報告** — エグゼクティブサマリー、GO/PIVOT/NO-GO 判定、AI-DLC への引き継ぎ事項とブリーフの渡し方
 
 > **再審議もできます**: 後日 `/new-app-strategy cxo-research/<既存フォルダ>` で再招集。新しい疑問・訂正・
 > 検証データを受けて影響するレポートだけ更新し、再決裁の結果を `00-business-plan.md` の改訂履歴に残します。
@@ -153,7 +156,8 @@ cxo-research/<アプリ名>-<YYYY-MM-DD>/
 ├── 03-tech-feasibility.md    ← 技術実現性・ランニングコスト・AI-DLC引き継ぎ
 ├── 04-persona.md             ← 顧客・ペルソナレポート
 ├── 05-monetization.md        ← マネタイズ・事業計画レポート
-└── 06-critical-review.md     ← 批判レビュー（致命的懸念・プレモータム・撤退条件）
+├── 06-critical-review.md     ← 批判レビュー（致命的懸念・プレモータム・撤退条件）
+└── input-brief.md            ← AI-DLC 入力ブリーフ（GO/PIVOT 時のみ自動生成・開発引き継ぎ用）
 ```
 
 ### 結論はどこを見る？
@@ -174,7 +178,22 @@ cxo-research/<アプリ名>-<YYYY-MM-DD>/
 
 ### AI-DLC Inception を始めるとき
 
-経営会議の成果物をそのまま開発フェーズ（AI-DLC）に引き継ぐ場合、渡すファイルは目的で絞ってください。
+**いちばん簡単なのは `input-brief.md` を1つ渡すこと。** GO / PIVOT の決裁が出たとき、
+会議の最後に自動生成されます。これは会議の成果物から「作るプロダクトに必要な情報だけ」を蒸留した
+入力ブリーフで、投資判断・市場規模・ユニットエコノミクスなどの**事業戦略情報は意図的に除いて**
+あります（要件のノイズになるため）。
+
+```
+# AI-DLC プロジェクトに input-brief.md を置いて
+/aidlc @input-brief.md
+```
+
+> NO-GO のときは `input-brief.md` は生成されません（作らないものに開発引き継ぎ資料は不要なため）。
+> 再審議でスコープ・技術・判断が変わると、ブリーフも再生成されます。
+
+#### 生レポートを直接渡したいとき（任意）
+
+ブリーフを介さず元レポートを渡しても AI-DLC は動きますが、目的でファイルを絞ってください。
 
 | 優先度 | ファイル | 理由 |
 |---|---|---|
